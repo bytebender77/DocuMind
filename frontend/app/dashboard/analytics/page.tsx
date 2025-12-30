@@ -31,12 +31,12 @@ const fetcher = async (url: string, token: string) => {
       'Content-Type': 'application/json'
     }
   })
-  
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Unknown error' }))
     throw new Error(error.detail || `HTTP ${response.status}`)
   }
-  
+
   return response.json()
 }
 
@@ -50,7 +50,7 @@ export default function AnalyticsPage() {
   useEffect(() => {
     const storedWorkspaceId = localStorage.getItem('workspace_id')
     const storedToken = localStorage.getItem('access_token')
-    
+
     if (storedWorkspaceId) {
       setWorkspaceId(storedWorkspaceId)
     }
@@ -61,10 +61,10 @@ export default function AnalyticsPage() {
 
   // Fetch analytics summary
   const { data: summary, error: summaryError, isLoading: summaryLoading } = useSWR<AnalyticsSummary>(
-    workspaceId && accessToken 
-      ? [`${API_URL}/analytics/summary/${workspaceId}`, accessToken] 
+    workspaceId && accessToken
+      ? [`${API_URL}/analytics/summary/${workspaceId}`, accessToken]
       : null,
-    ([url, token]) => fetcher(url, token),
+    ([url, token]: [string, string]) => fetcher(url, token),
     {
       refreshInterval: 30000, // Refresh every 30 seconds
       revalidateOnFocus: true
@@ -73,10 +73,10 @@ export default function AnalyticsPage() {
 
   // Fetch messages per day
   const { data: messagesPerDay, error: messagesError, isLoading: messagesLoading } = useSWR<MessagesPerDay>(
-    workspaceId && accessToken 
-      ? [`${API_URL}/analytics/messages-per-day/${workspaceId}?days=${days}`, accessToken] 
+    workspaceId && accessToken
+      ? [`${API_URL}/analytics/messages-per-day/${workspaceId}?days=${days}`, accessToken]
       : null,
-    ([url, token]) => fetcher(url, token),
+    ([url, token]: [string, string]) => fetcher(url, token),
     {
       refreshInterval: 30000,
       revalidateOnFocus: true
@@ -139,8 +139,8 @@ export default function AnalyticsPage() {
       <div className="analytics-header">
         <h1>📊 Analytics Dashboard</h1>
         <div className="header-controls">
-          <select 
-            value={days} 
+          <select
+            value={days}
             onChange={(e) => setDays(Number(e.target.value))}
             className="days-selector"
           >
@@ -200,8 +200,8 @@ export default function AnalyticsPage() {
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={messagesPerDay.data}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
+              <XAxis
+                dataKey="date"
                 tick={{ fontSize: 12 }}
                 tickFormatter={(value) => {
                   const date = new Date(value)
@@ -209,20 +209,20 @@ export default function AnalyticsPage() {
                 }}
               />
               <YAxis />
-              <Tooltip 
+              <Tooltip
                 labelFormatter={(value) => {
                   const date = new Date(value)
-                  return date.toLocaleDateString('en-US', { 
-                    month: 'short', 
+                  return date.toLocaleDateString('en-US', {
+                    month: 'short',
                     day: 'numeric',
                     year: 'numeric'
                   })
                 }}
               />
-              <Line 
-                type="monotone" 
-                dataKey="count" 
-                stroke="#3b82f6" 
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="#3b82f6"
                 strokeWidth={2}
                 dot={{ fill: '#3b82f6', r: 4 }}
                 activeDot={{ r: 6 }}
