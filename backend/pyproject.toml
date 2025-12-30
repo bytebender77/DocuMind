@@ -1,0 +1,19 @@
+[tool.pyright]
+include = ["app"]
+exclude = [
+    "**/__pycache__",
+    "**/node_modules",
+    "**/venv",
+    "**/.venv"
+]
+venvPath = "."
+venv = "venv"
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+reportMissingImports = true
+reportMissingTypeStubs = false
+
+[tool.pylint]
+ignore = ["venv", ".venv"]
+
+

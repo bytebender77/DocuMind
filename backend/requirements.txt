@@ -1,0 +1,19 @@
+# Backend Requirements for Production
+# Pinned versions to avoid compatibility issues
+
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+sqlalchemy==2.0.36
+alembic==1.14.0
+psycopg[binary]==3.2.3
+python-jose[cryptography]==3.3.0
+bcrypt>=4.0.0
+python-dotenv==1.0.1
+pydantic==2.9.2
+pydantic-settings==2.6.1
+email-validator==2.2.0
+python-multipart==0.0.9
+pypdf==4.0.1
+openai>=2.0.0
+pinecone>=5.0.0
+gunicorn==21.2.0
