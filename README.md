@@ -1,4 +1,4 @@
-# Multi-Tenant SaaS Platform - Phase 1 Backend
+# Multi-Tenant SaaS Platform - Backend
 
 Backend foundation for a multi-tenant SaaS platform with authentication, user management, and workspace isolation.
 
