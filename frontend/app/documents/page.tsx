@@ -2,13 +2,13 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 
-// Use environment variables with fallback to localhost for development
+// Use environment variable for API URL with fallback
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const WORKSPACE_ID = process.env.NEXT_PUBLIC_WORKSPACE_ID || "a11bf637-a95e-43d2-a94e-5b83e104d468";
 
 export default function Documents() {
     // Auth State
     const [token, setToken] = useState<string | null>(null);
+    const [workspaceId, setWorkspaceId] = useState<string | null>(null);
     const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [authError, setAuthError] = useState<string | null>(null);
 
@@ -31,8 +31,11 @@ export default function Documents() {
     // Auto-login on mount
     useEffect(() => {
         const savedToken = localStorage.getItem("rag_token");
-        if (savedToken) {
+        const savedWorkspaceId = localStorage.getItem("rag_workspace_id");
+
+        if (savedToken && savedWorkspaceId) {
             setToken(savedToken);
+            setWorkspaceId(savedWorkspaceId);
         } else {
             loginUser();
         }
@@ -42,7 +45,8 @@ export default function Documents() {
         setIsLoggingIn(true);
         setAuthError(null);
         try {
-            const res = await fetch(`${BACKEND_URL}/auth/login`, {
+            // Step 1: Login
+            const loginRes = await fetch(`${BACKEND_URL}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -51,13 +55,51 @@ export default function Documents() {
                 }),
             });
 
-            if (!res.ok) {
+            if (!loginRes.ok) {
                 throw new Error("Login failed");
             }
 
-            const data = await res.json();
-            setToken(data.access_token);
-            localStorage.setItem("rag_token", data.access_token);
+            const loginData = await loginRes.json();
+            const accessToken = loginData.access_token;
+            setToken(accessToken);
+            localStorage.setItem("rag_token", accessToken);
+
+            // Step 2: Fetch workspaces
+            const workspacesRes = await fetch(`${BACKEND_URL}/workspaces/`, {
+                headers: { "Authorization": `Bearer ${accessToken}` }
+            });
+
+            if (!workspacesRes.ok) {
+                throw new Error("Failed to fetch workspaces");
+            }
+
+            const workspaces = await workspacesRes.json();
+
+            if (workspaces && workspaces.length > 0) {
+                // Use the first workspace (or create one if needed)
+                const wsId = workspaces[0].id;
+                setWorkspaceId(wsId);
+                localStorage.setItem("rag_workspace_id", wsId);
+            } else {
+                // Create a new workspace if none exists
+                const createRes = await fetch(`${BACKEND_URL}/workspaces/`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({ workspace_name: "My Documents" }),
+                });
+
+                if (createRes.ok) {
+                    const newWorkspace = await createRes.json();
+                    setWorkspaceId(newWorkspace.id);
+                    localStorage.setItem("rag_workspace_id", newWorkspace.id);
+                } else {
+                    throw new Error("Failed to create workspace");
+                }
+            }
+
         } catch (error) {
             console.error("Login error:", error);
             setAuthError("Could not connect to backend. Make sure it's running.");
@@ -72,7 +114,7 @@ export default function Documents() {
             return;
         }
 
-        if (!token) {
+        if (!token || !workspaceId) {
             setUploadError("Not authenticated. Please wait...");
             await loginUser();
             return;
@@ -84,7 +126,7 @@ export default function Documents() {
         try {
             const formData = new FormData();
             files.forEach((file) => formData.append("files", file));
-            formData.append("workspace_id", WORKSPACE_ID);
+            formData.append("workspace_id", workspaceId);
             formData.append("auto_process", "true");
 
             const res = await fetch(`${BACKEND_URL}/files/upload`, {
@@ -113,7 +155,7 @@ export default function Documents() {
     };
 
     const sendMessage = async () => {
-        if (!input.trim()) return;
+        if (!input.trim() || !workspaceId) return;
 
         const userMessage = { role: "user", content: input };
         setMessages((prev) => [...prev, userMessage]);
@@ -125,7 +167,7 @@ export default function Documents() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    workspace_id: WORKSPACE_ID,
+                    workspace_id: workspaceId,
                     message: input,
                 }),
             });
@@ -152,6 +194,8 @@ export default function Documents() {
         }
     };
 
+    const isReady = token && workspaceId;
+
     return (
         <div style={{ minHeight: '100vh', background: '#050505', color: '#fff', fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}>
             {/* Background Ambience */}
@@ -169,7 +213,7 @@ export default function Documents() {
                     </Link>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <Link href="/" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#a3a3a3', textDecoration: 'none' }}>← Home</Link>
-                        {token && <span style={{ fontSize: '0.75rem', color: '#22c55e' }}>● Connected</span>}
+                        {isReady && <span style={{ fontSize: '0.75rem', color: '#22c55e' }}>● Connected</span>}
                         {isLoggingIn && <span style={{ fontSize: '0.75rem', color: '#f59e0b' }}>● Connecting...</span>}
                         {authError && <span style={{ fontSize: '0.75rem', color: '#ef4444' }}>● Offline</span>}
                     </div>
@@ -249,11 +293,11 @@ export default function Documents() {
                             {files.length > 0 && !uploaded && (
                                 <button
                                     onClick={uploadFiles}
-                                    disabled={uploading || !token}
+                                    disabled={uploading || !isReady}
                                     className="shiny-cta"
-                                    style={{ width: '100%', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', opacity: uploading || !token ? 0.5 : 1, cursor: uploading || !token ? 'not-allowed' : 'pointer' }}
+                                    style={{ width: '100%', marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', opacity: uploading || !isReady ? 0.5 : 1, cursor: uploading || !isReady ? 'not-allowed' : 'pointer' }}
                                 >
-                                    {uploading ? 'Processing...' : !token ? 'Connecting...' : 'Process Documents'}
+                                    {uploading ? 'Processing...' : !isReady ? 'Connecting...' : 'Process Documents'}
                                 </button>
                             )}
 
