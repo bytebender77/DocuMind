@@ -533,7 +533,7 @@ export default function Home() {
       <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '3rem 0', background: '#000' }}>
         <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '0 1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', gap: '1.5rem' }} className="md:flex-row">
           <div style={{ fontSize: '0.875rem', color: '#525252' }}>
-            © 2024 RAG AI Assistant. All rights reserved.
+            © 2025 RAG AI Assistant. All rights reserved.
           </div>
           <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', fontWeight: 500, color: '#a3a3a3' }}>
             <Link href="/documents" style={{ transition: 'color 0.2s', color: '#a3a3a3' }} className="hover:text-white">Upload</Link>
