@@ -5,6 +5,15 @@ import { useEffect, useRef, useState } from "react";
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  // Detect screen size
+  useEffect(() => {
+    const checkScreen = () => setIsDesktop(window.innerWidth >= 768);
+    checkScreen();
+    window.addEventListener('resize', checkScreen);
+    return () => window.removeEventListener('resize', checkScreen);
+  }, []);
 
   // Fluid Animation Script
   useEffect(() => {
@@ -302,25 +311,35 @@ export default function Home() {
         <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '0 1.5rem', height: '4rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <img src="/logo.png" alt="RAG AI Assistant Logo" style={{ width: '2rem', height: '2rem', objectFit: 'contain' }} />
-            <span style={{ fontWeight: 600, letterSpacing: '-0.025em', fontSize: '0.875rem' }}>RAG AI ASSISTANT</span>
+            <span style={{ fontWeight: 600, letterSpacing: '-0.025em', fontSize: '0.875rem' }}>DocuMind</span>
           </div>
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-neutral-400">
-            <a href="#features" style={{ transition: 'color 0.2s', color: '#a3a3a3' }} className="hover:text-white">Features</a>
-            <a href="#how-it-works" style={{ transition: 'color 0.2s', color: '#a3a3a3' }} className="hover:text-white">How It Works</a>
-            <a href="#about" style={{ transition: 'color 0.2s', color: '#a3a3a3' }} className="hover:text-white">About</a>
-            <a href="#use-cases" style={{ transition: 'color 0.2s', color: '#a3a3a3' }} className="hover:text-white">Use Cases</a>
-          </nav>
-          <div className="hidden md:flex items-center gap-4">
-            <Link href="/auth/login" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#a3a3a3', transition: 'color 0.2s' }} className="hover:text-white">
-              Login
-            </Link>
-            <Link href="/auth/signup" className="shiny-cta" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
-              Sign Up
-            </Link>
-          </div>
-          <button className="md:hidden" style={{ color: '#a3a3a3' }} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
-          </button>
+
+          {/* Desktop Navigation */}
+          {isDesktop && (
+            <>
+              <nav style={{ display: 'flex', alignItems: 'center', gap: '2rem', fontSize: '0.875rem', fontWeight: 500, color: '#a3a3a3' }}>
+                <a href="#features" style={{ transition: 'color 0.2s', color: '#a3a3a3' }}>Features</a>
+                <a href="#how-it-works" style={{ transition: 'color 0.2s', color: '#a3a3a3' }}>How It Works</a>
+                <a href="#about" style={{ transition: 'color 0.2s', color: '#a3a3a3' }}>About</a>
+                <a href="#use-cases" style={{ transition: 'color 0.2s', color: '#a3a3a3' }}>Use Cases</a>
+              </nav>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <Link href="/auth/login" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#a3a3a3', transition: 'color 0.2s', textDecoration: 'none' }}>
+                  Login
+                </Link>
+                <Link href="/auth/signup" className="shiny-cta" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', textDecoration: 'none' }}>
+                  Sign Up
+                </Link>
+              </div>
+            </>
+          )}
+
+          {/* Mobile Menu Button */}
+          {!isDesktop && (
+            <button style={{ color: '#a3a3a3', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+            </button>
+          )}
         </div>
         {isMenuOpen && (
           <div id="mobile-menu" style={{ position: 'absolute', top: '4rem', left: 0, width: '100%', background: '#0a0a0a', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
