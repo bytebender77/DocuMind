@@ -310,9 +310,14 @@ export default function Home() {
             <a href="#about" style={{ transition: 'color 0.2s', color: '#a3a3a3' }} className="hover:text-white">About</a>
             <a href="#use-cases" style={{ transition: 'color 0.2s', color: '#a3a3a3' }} className="hover:text-white">Use Cases</a>
           </nav>
-          <Link href="/documents" className="hidden md:block" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#fff', transition: 'color 0.2s' }}>
-            Get Started →
-          </Link>
+          <div className="hidden md:flex items-center gap-4">
+            <Link href="/auth/login" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#a3a3a3', transition: 'color 0.2s' }} className="hover:text-white">
+              Login
+            </Link>
+            <Link href="/auth/signup" className="shiny-cta" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
+              Sign Up
+            </Link>
+          </div>
           <button className="md:hidden" style={{ color: '#a3a3a3' }} onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
           </button>
@@ -322,7 +327,10 @@ export default function Home() {
             <a href="#features" style={{ color: '#a3a3a3' }} onClick={() => setIsMenuOpen(false)}>Features</a>
             <a href="#how-it-works" style={{ color: '#a3a3a3' }} onClick={() => setIsMenuOpen(false)}>How It Works</a>
             <a href="#use-cases" style={{ color: '#a3a3a3' }} onClick={() => setIsMenuOpen(false)}>Use Cases</a>
-            <Link href="/documents" style={{ color: '#60a5fa' }} onClick={() => setIsMenuOpen(false)}>Get Started</Link>
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <Link href="/auth/login" style={{ color: '#a3a3a3' }} onClick={() => setIsMenuOpen(false)}>Login</Link>
+              <Link href="/auth/signup" style={{ color: '#60a5fa', fontWeight: 500 }} onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
+            </div>
           </div>
         )}
       </header>
