@@ -39,6 +39,9 @@ async def retrieve_relevant_chunks(
         List of relevant chunks with metadata and scores
     """
     try:
+        print(f"[RAG-QUERY] Workspace ID: {workspace_id}")
+        print(f"[RAG-QUERY] Query: '{query[:100]}...'")
+        
         # Generate query embedding (run in thread pool to avoid blocking)
         loop = asyncio.get_event_loop()
         query_embedding = await loop.run_in_executor(
@@ -47,9 +50,12 @@ async def retrieve_relevant_chunks(
             query, 
             "text-embedding-3-small"
         )
+        print(f"[RAG-QUERY] Generated embedding, length: {len(query_embedding)}")
         
         # Query Pinecone (run in thread pool)
         index = get_pinecone_index()
+        print(f"[RAG-QUERY] Querying Pinecone namespace: '{str(workspace_id)}'")
+        
         chunks = await loop.run_in_executor(
             None,
             query_similar_chunks,
@@ -59,8 +65,15 @@ async def retrieve_relevant_chunks(
             index
         )
         
+        print(f"[RAG-QUERY] Retrieved {len(chunks)} chunks")
+        for i, chunk in enumerate(chunks):
+            score = chunk.get('score', 0)
+            text_preview = chunk.get('metadata', {}).get('text', '')[:50]
+            print(f"  [Chunk {i}] Score: {score:.4f} - Text: '{text_preview}...'")
+        
         return chunks
     except Exception as e:
+        print(f"[RAG-QUERY] ERROR: {str(e)}")
         raise Exception(f"Failed to retrieve relevant chunks: {str(e)}")
 
 
