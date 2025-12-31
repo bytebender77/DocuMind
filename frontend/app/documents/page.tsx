@@ -5,6 +5,73 @@ import { useRouter } from "next/navigation";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+// Simple markdown renderer for chat messages
+function renderMarkdown(text: string) {
+    // Split by lines and process
+    const lines = text.split('\n');
+    const elements: React.ReactNode[] = [];
+
+    let inList = false;
+    let listItems: string[] = [];
+
+    const processLine = (line: string, key: number) => {
+        // Bold text: **text** or __text__
+        let processed = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        processed = processed.replace(/__(.*?)__/g, '<strong>$1</strong>');
+        // Italic: *text* or _text_
+        processed = processed.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+        processed = processed.replace(/_([^_]+)_/g, '<em>$1</em>');
+        // Code: `text`
+        processed = processed.replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,0.1);padding:0.125rem 0.25rem;border-radius:0.25rem;font-size:0.8em">$1</code>');
+
+        return <span key={key} dangerouslySetInnerHTML={{ __html: processed }} />;
+    };
+
+    lines.forEach((line, i) => {
+        // Bullet points: - or *
+        if (line.trim().match(/^[-*]\s+/)) {
+            if (!inList) {
+                inList = true;
+                listItems = [];
+            }
+            listItems.push(line.trim().replace(/^[-*]\s+/, ''));
+        } else {
+            // Close previous list if exists
+            if (inList) {
+                elements.push(
+                    <ul key={`list-${i}`} style={{ margin: '0.5rem 0', paddingLeft: '1.25rem' }}>
+                        {listItems.map((item, j) => (
+                            <li key={j} style={{ marginBottom: '0.25rem' }}>{processLine(item, j)}</li>
+                        ))}
+                    </ul>
+                );
+                inList = false;
+                listItems = [];
+            }
+
+            // Empty line = paragraph break
+            if (line.trim() === '') {
+                elements.push(<br key={`br-${i}`} />);
+            } else {
+                elements.push(<p key={`p-${i}`} style={{ margin: '0.25rem 0' }}>{processLine(line, i)}</p>);
+            }
+        }
+    });
+
+    // Close any remaining list
+    if (inList && listItems.length > 0) {
+        elements.push(
+            <ul key="list-final" style={{ margin: '0.5rem 0', paddingLeft: '1.25rem' }}>
+                {listItems.map((item, j) => (
+                    <li key={j} style={{ marginBottom: '0.25rem' }}>{processLine(item, j)}</li>
+                ))}
+            </ul>
+        );
+    }
+
+    return elements;
+}
+
 export default function Documents() {
     const router = useRouter();
 
@@ -289,11 +356,11 @@ export default function Documents() {
                                 {messages.map((m, i) => (
                                     <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
                                         <div style={{
-                                            padding: '0.75rem 1rem', borderRadius: '0.75rem', maxWidth: '85%', fontSize: '0.875rem', lineHeight: 1.5,
+                                            padding: '0.75rem 1rem', borderRadius: '0.75rem', maxWidth: '85%', fontSize: '0.875rem', lineHeight: 1.6,
                                             background: m.role === 'user' ? '#3b82f6' : 'rgba(255,255,255,0.08)',
                                             color: m.role === 'user' ? '#fff' : '#d4d4d4'
                                         }}>
-                                            {m.content}
+                                            {m.role === 'user' ? m.content : renderMarkdown(m.content)}
                                         </div>
                                     </div>
                                 ))}
